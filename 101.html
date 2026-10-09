@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Late Windows 10 (22H2) Style Modal</title>
+  <style>
+    /* ==========================================================================
+       最後のWindows 10（Version 22H2 / Fluent Design）再現テーマ
+       ========================================================================== */
+    :root {
+      /* アクリル効果を取り入れた、透明感のあるライトモード背景 */
+      --win10-acrylic: rgba(242, 242, 242, 0.85); 
+      --win10-content-bg: #ffffff;
+      --win10-text: #000000;
+      --win10-text-secondary: #666666;
+      --win10-accent: #0078d7; /* 馴染み深いWin10ブルー */
+      
+      /* 最初期との決定的な違い：境界線はごく淡く、影は広範囲に柔らかく */
+      --win10-border: rgba(0, 0, 0, 0.15);
+      --win10-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    body {
+      /* Windows 10の後期デフォルト壁紙（光の筋が美しいモダンなブルー） */
+      background: linear-gradient(135deg, #184c9b 0%, #002050 100%);
+      font-family: "Segoe UI", "Yu Gothic", "游ゴシック", sans-serif;
+      font-size: 12px;
+      color: var(--win10-text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* 起動ボタン */
+    .trigger-btn {
+      padding: 5px 16px;
+      background-color: #e1e1e1;
+      border: 1px solid #adadad;
+      color: var(--win10-text);
+      cursor: pointer;
+    }
+    .trigger-btn:hover {
+      background-color: #e5f1fb;
+      border-color: var(--win10-accent);
+    }
+
+    /* モーダル本体（後期Windows 10仕様） */
+    dialog.win10-final-dialog {
+      width: 500px;
+      background: var(--win10-acrylic);
+      padding: 0;
+      /* 特徴1：Windows 11とは違い、角丸は一切なし（完全な直線のソリッド感） */
+      border: 1px solid var(--win10-border); 
+      /* 特徴2：最初期の不透明なドロップシャドウから、淡く広がる上品な影へ進化 */
+      box-shadow: var(--win10-shadow); 
+      /* 特徴3：Fluent Designのアクリル素材を再現する微細なぼかし */
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+    }
+    dialog.win10-final-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    /* タイトルバー */
+    .title-bar {
+      height: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-left: 12px;
+      user-select: none;
+    }
+    .title-text {
+      font-size: 12px;
+      color: var(--win10-text);
+    }
+    .title-controls {
+      display: flex;
+      height: 100%;
+    }
+    .win10-btn-x {
+      width: 46px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      color: var(--win10-text);
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    /* マウスホバーでパッと鮮やかな赤に変わる伝統の挙動 */
+    .win10-btn-x:hover {
+      background-color: #e81123;
+      color: #ffffff;
+    }
+
+    /* メインコンテンツエリア */
+    .dialog-body {
+      padding: 8px 20px 20px 20px;
+    }
+
+    /* タブレイアウト（後期「設定」アプリに採用された美しい横並びタブ） */
+    .tab-navigation {
+      display: flex;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .tab-link {
+      padding: 8px 16px;
+      cursor: pointer;
+      color: var(--win10-text-secondary);
+      font-size: 13px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.1s;
+    }
+    .tab-link:hover {
+      color: var(--win10-text);
+    }
+    /* アクティブタブ：シャープなアクセントブルーの一本線 */
+    .tab-link.active {
+      color: var(--win10-accent);
+      border-bottom: 2px solid var(--win10-accent);
+      font-weight: 600;
+    }
+
+    /* コンテンツ表示エリア（アクリル背景の上に重なるソリッドな白パネル） */
+    .tab-content-box {
+      background: var(--win10-content-bg);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      padding: 16px;
+      min-height: 180px;
+    }
+    .tab-panel {
+      display: none;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* トグルスイッチ（後期Win10を象徴するフラットなオン/オフUI） */
+    .win10-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .toggle-slider {
+      width: 40px;
+      height: 18px;
+      border: 2px solid #333333;
+      border-radius: 10px;
+      position: relative;
+      background: transparent;
+      transition: background-color 0.1s, border-color 0.1s;
+    }
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #333333;
+      top: 4px;
+      left: 4px;
+      transition: transform 0.1s, background-color 0.1s;
+    }
+    input[type="checkbox"]:checked + .toggle-slider {
+      background-color: var(--win10-accent);
+      border-color: var(--win10-accent);
+    }
+    input[type="checkbox"]:checked + .toggle-slider::before {
+      transform: translateX(22px);
+      background: #ffffff;
+    }
+
+    /* 下部アクションボタンエリア */
+    .action-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .action-footer .action-btn {
+      min-width: 90px;
+      padding: 6px 0;
+      font-size: 13px;
+      background-color: #cccccc;
+      border: 1px solid #7a7a7a;
+      cursor: pointer;
+    }
+    .action-footer .action-btn:hover {
+      background-color: #7a7a7a;
+      color: #ffffff;
+    }
+    /* OK（既定のボタン）：アクセントカラーの太い青枠で囲まれる仕様 */
+    .action-footer .action-btn.primary {
+      border: 2px solid var(--win10-accent);
+      background-color: #e1e1e1;
+      color: var(--win10-text);
+      padding: 5px 0; 
+    }
+    .action-footer .action-btn.primary:hover {
+      background-color: #e5f1fb;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- モーダルを開くボタン -->
+  <button class="trigger-btn" id="openBtn">更新とセキュリティ(U)</button>
+
+  <!-- 最後のWindows 10 風 モーダル -->
+  <dialog id="win10FinalModal" class="win10-final-dialog">
+    <!-- タイトルバー -->
+    <div class="title-bar">
+      <div class="title-text">Windows アップデート</div>
+      <div class="title-controls">
+        <button class="win10-btn-x" id="closeX">✕</button>
+      </div>
+    </div>
+
+    <!-- コンテンツボディ -->
+    <div class="dialog-body">
+      <!-- 22H2期仕様のスタイリッシュなフラットタブ -->
+      <ul class="tab-navigation">
+        <li class="tab-link active" data-tab="page1">更新プログラム</li>
+        <li class="tab-link" data-tab="page2">詳細オプション</li>
+        <li class="tab-link" data-tab="page3">ビルド情報</li>
+      </ul>
+
+      <!-- タブの各コンテンツ -->
+      <div class="tab-content-box">
+        <div id="page1" class="tab-panel active">
+          <p style="font-size: 15px; font-weight: 400; margin: 0 0 10px 0;">✓ 最新の状態です</p>
+          <p style="color: var(--win10-text-secondary); margin: 0;">最終確認日時: 2025/10/14</p>
+          <p style="margin-top: 15px;">Windows 10 はすべての主要な機能アップデートが完了し、最終セキュリティサポートが適用されています。</p>
+        </div>
+
+        <div id="page2" class="tab-panel">
+          <p style="font-weight: 600; margin: 0 0 10px 0;">更新の設定</p>
+          <!-- Win10特有のフラットなトグルスイッチの再現 -->
+          <label class="win10-toggle">
+            <input type="checkbox" id="toggleCheck" style="display: none;" checked>
+            <div class="toggle-slider"></div>
+            <span id="toggleText">他の Microsoft 製品の更新プログラムも受け取る</span>
+          </label>
+        </div>
+
+        <div id="page3" class="tab-panel">
+          <p><strong>エディション:</strong> Windows 10 Home / Pro</p>
+          <p><strong>バージョン:</strong> 22H2 (Final Version)</p>
+          <p><strong>OS ビルド:</strong> 19045.5011</p>
+          <p style="color: var(--win10-text-secondary); margin-top: 15px;">エクスペリエンス: Windows Feature Experience Pack</p>
+        </div>
+      </div>
+
+      <!-- 下部ボタン -->
+      <div class="action-footer">
+        <button class="action-btn primary" id="closeOk">OK</button>
+        <button class="action-btn" id="closeCancel">キャンセル</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('win10FinalModal');
+    const openBtn = document.getElementById('openBtn');
+    const closeX = document.getElementById('closeX');
+    const closeOk = document.getElementById('closeOk');
+    const closeCancel = document.getElementById('closeCancel');
+    
+    const tabs = document.querySelectorAll('.tab-link');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    // 開閉処理
+    openBtn.addEventListener('click', () => modal.showModal());
+    [closeX, closeOk, closeCancel].forEach(btn => {
+      btn.addEventListener('click', () => modal.close());
+    });
+
+    // 背景クリックで閉じる処理
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close();
+    });
+
+    // タブ切り替えロジック
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
