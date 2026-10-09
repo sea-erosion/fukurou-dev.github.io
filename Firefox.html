@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firefox Style Modal</title>
+  <style>
+    /* ==========================================================================
+       Firefox (Proton / Modern UI) 再現テーマ
+       ========================================================================== */
+    :root {
+      /* Firefox ブランドを象徴する鮮やかなグラデーション */
+      --fx-brand-gradient: linear-gradient(90deg, #ff9400 0%, #ff1a69 50%, #9059ff 100%);
+      --fx-bg: #f9f9fb; /* メインの背景（クリーンな薄いグレー） */
+      --fx-sidebar-bg: #f0f0f4; /* 設定左メニューやヘッダーの背景 */
+      --fx-text: #15141a;
+      --fx-text-secondary: #5b5b66;
+      --fx-accent: #0060df; /* Firefoxブルー（リンクや主ボタン） */
+      --fx-accent-hover: #004dc0;
+      --fx-border: #e0e0e6;
+      --fx-radius: 4px;
+      --fx-tab-radius: 6px;
+    }
+
+    body {
+      background-color: #2b2a33; /* Firefoxのダークテーマ・ブラウザ枠をイメージした背景 */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Yu Gothic", sans-serif;
+      font-size: 13px;
+      color: var(--fx-text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* 起動ボタン */
+    .trigger-btn {
+      padding: 8px 16px;
+      background-color: var(--fx-accent);
+      border: none;
+      color: #ffffff;
+      border-radius: var(--fx-radius);
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.15s;
+    }
+    .trigger-btn:hover {
+      background-color: var(--fx-accent-hover);
+    }
+
+    /* モーダル本体 */
+    dialog.fx-dialog {
+      width: 540px;
+      background: var(--fx-bg);
+      padding: 0;
+      border: 1px solid var(--fx-border);
+      border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
+    dialog.fx-dialog::backdrop {
+      background: rgba(21, 20, 26, 0.7); /* 暗めの高級感あるシールド */
+    }
+
+    /* ヘッダーエリア（Firefoxブランドのグラデーション線を上部に配置） */
+    .fx-header {
+      position: relative;
+      background-color: var(--fx-sidebar-bg);
+      padding: 16px 20px 12px 20px;
+      border-bottom: 1px solid var(--fx-border);
+    }
+    .fx-header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--fx-brand-gradient); /* 上部のグラデーションライン */
+    }
+    .fx-header-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .fx-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* 閉じる（×）ボタン */
+    .fx-btn-close {
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      color: var(--fx-text-secondary);
+      font-size: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    .fx-btn-close:hover {
+      background-color: rgba(0, 0, 0, 0.08);
+      color: var(--fx-text);
+    }
+
+    /* メインボディ */
+    .fx-body {
+      padding: 16px 20px 20px 20px;
+    }
+
+    /* タブレイアウト（Firefox現行の「Proton」デザイン：背景から独立して浮いたタブ） */
+    .fx-tab-nav {
+      display: flex;
+      list-style: none;
+      padding: 4px;
+      margin: 0 0 16px 0;
+      background-color: var(--fx-sidebar-bg);
+      border-radius: var(--fx-tab-radius);
+      gap: 4px;
+    }
+    .fx-tab-link {
+      padding: 8px 16px;
+      cursor: pointer;
+      color: var(--fx-text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--fx-radius);
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .fx-tab-link:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+      color: var(--fx-text);
+    }
+    /* アクティブなタブ：Firefox特有の、背景が白く完全に「浮いたボタン」に見えるデザイン */
+    .fx-tab-link.active {
+      background-color: #ffffff;
+      color: var(--fx-accent);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    /* コンテンツエリア */
+    .fx-content-box {
+      min-height: 180px;
+    }
+    .fx-panel {
+      display: none;
+      line-height: 1.6;
+    }
+    .fx-panel.active {
+      display: block;
+    }
+
+    /* Firefox設定画面風のクリーンなフォームパーツ */
+    .fx-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      border-bottom: 1px solid var(--fx-border);
+      padding-bottom: 6px;
+    }
+    .fx-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .fx-checkbox-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--fx-accent); /* チェック時のカラーをFirefoxブルーに */
+    }
+
+    /* 下部アクションエリア */
+    .fx-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+      border-top: 1px solid var(--fx-border);
+      padding-top: 14px;
+    }
+    .fx-btn {
+      padding: 6px 16px;
+      font-size: 13px;
+      border-radius: var(--fx-radius);
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .fx-btn.sub {
+      background-color: transparent;
+      border: 1px solid var(--fx-border);
+      color: var(--fx-text);
+    }
+    .fx-btn.sub:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    .fx-btn.main {
+      background-color: var(--fx-accent);
+      border: 1px solid transparent;
+      color: #ffffff;
+    }
+    .fx-btn.main:hover {
+      background-color: var(--fx-accent-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- モーダルを開くボタン -->
+  <button class="trigger-btn" id="openBtn">Firefox 設定を開く</button>
+
+  <!-- Firefox 風 モーダル -->
+  <dialog id="fxModal" class="fx-dialog">
+    <!-- ヘッダー（グラデーションライン付き） -->
+    <div class="fx-header">
+      <div class="fx-header-title-row">
+        <div class="fx-title">
+          <span>🦊</span> Firefox 拡張設定
+        </div>
+        <button class="fx-btn-close" id="closeX">✕</button>
+      </div>
+    </div>
+
+    <!-- コンテンツボディ -->
+    <div class="fx-body">
+      <!-- 浮かび上がる「Proton」スタイルのタブ -->
+      <ul class="fx-tab-nav">
+        <li class="fx-tab-link active" data-tab="p1">一般</li>
+        <li class="fx-tab-link" data-tab="p2">プライバシーとセキュリティ</li>
+        <li class="fx-tab-link" data-tab="p3">同期</li>
+      </ul>
+
+      <!-- タブコンテンツ -->
+      <div class="fx-content-box">
+        <div id="p1" class="fx-panel active">
+          <h3 class="fx-section-title">起動設定</h3>
+          <label class="fx-checkbox-label">
+            <input type="checkbox" checked>
+            <span>Firefox を起動するときに前のセッションを復元する</span>
+          </label>
+          <label class="fx-checkbox-label">
+            <input type="checkbox">
+            <span>常に既定のブラウザーに設定されているか確認する</span>
+          </label>
+        </div>
+
+        <div id="p2" class="fx-panel">
+          <h3 class="fx-section-title">強化型トラッキング防止機能</h3>
+          <p style="color: var(--fx-text-secondary); margin-bottom: 12px;">
+            Webサイトによる追跡（トラッカー）からプライバシーを保護します。
+          </p>
+          <label class="fx-checkbox-label">
+            <input type="radio" name="protection" checked style="accent-color: var(--fx-accent);">
+            <strong>標準：</strong>一般的なトラッカーをブロックします（推奨）
+          </label>
+          <label class="fx-checkbox-label">
+            <input type="radio" name="protection" style="accent-color: var(--fx-accent);">
+            <strong>厳格：</strong>より強力にブロックしますが、一部のページが崩れる場合があります
+          </label>
+        </div>
+
+        <div id="p3" class="fx-panel">
+          <h3 class="fx-section-title">Firefox Account</h3>
+          <p>ブックマーク、パスワード、開いているタブを他のデバイス（スマホや別のPC）と安全に共有します。</p>
+          <button class="fx-btn main" style="margin-top: 10px;">同期を開始...</button>
+        </div>
+      </div>
+
+      <!-- 下部フッターボタン -->
+      <div class="fx-footer">
+        <button class="fx-btn sub" id="closeCancel">キャンセル</button>
+        <button class="fx-btn main" id="closeOk">変更を保存</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('fxModal');
+    const openBtn = document.getElementById('openBtn');
+    const closeX = document.getElementById('closeX');
+    const closeOk = document.getElementById('closeOk');
+    const closeCancel = document.getElementById('closeCancel');
+    
+    const tabs = document.querySelectorAll('.fx-tab-link');
+    const panels = document.querySelectorAll('.fx-panel');
+
+    // 開閉制御
+    openBtn.addEventListener('click', () => modal.showModal());
+    [closeX, closeOk, closeCancel].forEach(btn => {
+      btn.addEventListener('click', () => modal.close());
+    });
+
+    // モーダルの外側（背景）をクリックした時に閉じる
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close();
+    });
+
+    // タブ切り替え処理
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
