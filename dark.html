@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汎用モーダル（ダークモード対応）</title>
+  <style>
+    /* --- ベースの変数定義 (ライトモード / ダークモード自動切り替え) --- */
+    :root {
+      --bg-primary: #ffffff;
+      --bg-modal: #ffffff;
+      --bg-overlay: rgba(0, 0, 0, 0.5);
+      --text-main: #1f2937;
+      --text-muted: #4b5563;
+      --border-color: #e5e7eb;
+      --btn-primary-bg: #2563eb;
+      --btn-primary-text: #ffffff;
+      --btn-secondary-bg: #f3f4f6;
+      --btn-secondary-text: #1f2937;
+      --btn-secondary-hover: #e5e7eb;
+    }
+
+    /* ユーザーの端末がダークモード設定の場合に自動適用 */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #111827;
+        --bg-modal: #1f2937;
+        --bg-overlay: rgba(0, 0, 0, 0.7);
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --border-color: #374151;
+        --btn-primary-bg: #3b82f6;
+        --btn-secondary-bg: #374151;
+        --btn-secondary-text: #f9fafb;
+        --btn-secondary-hover: #4b5563;
+      }
+    }
+
+    /* ページ全体のスタイル */
+    body {
+      font-family: sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* 開くボタン */
+    .trigger-btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+    }
+
+    /* --- モーダル本体のスタイル --- */
+    .modal {
+      border: none;
+      border-radius: 12px;
+      padding: 0;
+      width: 90%;
+      max-width: 500px;
+      background-color: var(--bg-modal);
+      color: var(--text-main);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      
+      /* アニメーション用（初期状態：非表示かつ少し下に配置） */
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.25s ease-out, transform 0.25s ease-out, display 0.25s ease-out allow-discrete;
+    }
+
+    /* モーダルが開いている時のスタイル */
+    .modal[open] {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 背景（オーバーレイ）のスタイル */
+    .modal::backdrop {
+      background-color: var(--bg-overlay);
+      backdrop-filter: blur(4px); /* 背景をほんのりぼかす */
+      opacity: 0;
+      transition: opacity 0.25s ease-out, display 0.25s ease-out allow-discrete;
+    }
+    .modal[open]::backdrop {
+      opacity: 1;
+    }
+
+    /* モーダル内のレイアウト */
+    .modal-container {
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .close-icon-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+
+    .modal-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* 汎用ボタンクラス */
+    .btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.2s;
+    }
+    .btn-primary {
+      background-color: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+    }
+    .btn-secondary {
+      background-color: var(--btn-secondary-bg);
+      color: var(--btn-secondary-text);
+    }
+    .btn-secondary:hover {
+      background-color: var(--btn-secondary-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- モーダルを開くトリガーボタン -->
+  <button class="trigger-btn" id="openModalBtn">モーダルを開く</button>
+
+  <!-- モーダル要素 -->
+  <dialog class="modal" id="customModal">
+    <div class="modal-container">
+      
+      <!-- ヘッダー -->
+      <div class="modal-header">
+        <h2 class="modal-title">確認タイトル</h2>
+        <button class="close-icon-btn" id="closeIconBtn" aria-label="閉じる">&times;</button>
+      </div>
+      
+      <!-- コンテンツ -->
+      <div class="modal-body">
+        <p>ここにモーダルのメインテキストやコンテンツが入ります。CSS変数を使用しているため、OSやブラウザのダークモード設定に応じてデザインが自動で最適化されます。</p>
+      </div>
+      
+      <!-- フッター（アクションボタン） -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelBtn">キャンセル</button>
+        <button class="btn btn-primary" id="confirmBtn">確定する</button>
+      </div>
+
+    </div>
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('customModal');
+    const openBtn = document.getElementById('openModalBtn');
+    const closeIconBtn = document.getElementById('closeIconBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+
+    // モーダルを開く
+    openBtn.addEventListener('click', () => {
+      modal.showModal();
+    });
+
+    // モーダルを閉じる関数
+    const closeModal = () => {
+      modal.close();
+    };
+
+    // 各ボタンのイベント設定
+    closeIconBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    
+    confirmBtn.addEventListener('click', () => {
+      alert('確定されました！');
+      closeModal();
+    });
+
+    // 背景（オーバーレイ）をクリックしたときも閉じるようにする設定
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
