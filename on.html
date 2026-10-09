@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>業務用端末風 コンソールモーダル</title>
+  <style>
+    /* --- 業務端末専用の完全ダーク・ソリッドシステム --- */
+    :root {
+      --bg-main: #000000;         /* 完全な黒背景 */
+      --bg-modal: #0d0d0d;        /* モーダル内部の漆黒 */
+      --bg-titlebar: #1a1a1a;     /* タイトルバーの暗灰色 */
+      --bg-overlay: rgba(0, 0, 0, 0.85); /* 背後を遮断する濃い影 */
+      
+      --text-white: #ffffff;      /* 基準の白文字 */
+      --text-dim: #888888;        /* 補助用のグレー文字 */
+      --border-heavy: #333333;    /* 機器感のある境界線 */
+      
+      /* ターミナル風システムカラー */
+      --system-green: #00ff66;    /* 正常稼働・実行 */
+      
+      /* ウィンドウ操作ボタン */
+      --win-hover: #2a2a2a;       /* 最小化・最大化のホバー */
+      --win-close-hover: #aa0000; /* 閉じるボタンのホバー */
+    }
+
+    /* 画面全体のスタイル設定 */
+    body {
+      font-family: 'Courier New', Courier, monospace, 'Noto Sans JP';
+      background-color: var(--bg-main);
+      color: var(--text-white);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      letter-spacing: 0.05em;
+    }
+
+    /* システム起動用のトリガーボタン */
+    .launch-btn {
+      font-family: inherit;
+      background: transparent;
+      color: var(--text-white);
+      border: 1px solid var(--text-white);
+      padding: 10px 24px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .launch-btn:hover {
+      background-color: var(--text-white);
+      color: var(--bg-main);
+    }
+
+    /* --- モーダル本体 --- */
+    .terminal-window {
+      border: 1px solid var(--border-heavy);
+      border-radius: 0px; /* 業務端末に無駄な丸みは不要（直角） */
+      padding: 0;
+      width: 90%;
+      max-width: 640px;
+      background-color: var(--bg-modal);
+      color: var(--text-white);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+      
+      /* 開閉アニメーション (パッと切り替わる業務機ライクな速度) */
+      opacity: 0;
+      transform: scale(0.98);
+      transition: opacity 0.1s ease-out, transform 0.1s ease-out, display 0.1s ease-out allow-discrete;
+    }
+
+    .terminal-window[open] {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .terminal-window::backdrop {
+      background-color: var(--bg-overlay);
+      backdrop-filter: blur(1px);
+      opacity: 0;
+      transition: opacity 0.1s ease-out, display 0.1s ease-out allow-discrete;
+    }
+    .terminal-window[open]::backdrop {
+      opacity: 1;
+    }
+
+    /* --- タイトルバー --- */
+    .titlebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--bg-titlebar);
+      border-bottom: 1px solid var(--border-heavy);
+      padding: 6px 12px;
+      user-select: none;
+    }
+
+    .title-text {
+      margin: 0;
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--text-white);
+      text-transform: uppercase;
+    }
+
+    /* 右側のウィンドウ操作ボタン群 */
+    .window-controls {
+      display: flex;
+    }
+
+    .win-btn {
+      background: none;
+      border: none;
+      width: 38px;
+      height: 26px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: var(--text-white);
+    }
+
+    /* 最小化・最大化（デザインのみホバーで背景がやや明るく） */
+    .win-btn:hover {
+      background-color: var(--win-hover);
+    }
+
+    /* 閉じるボタン（実稼働、ホバー時に警告の暗い赤色へ） */
+    .win-btn.close-trigger:hover {
+      background-color: var(--win-close-hover);
+    }
+
+    /* --- メインテキスト領域 --- */
+    .window-body {
+      padding: 24px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .status-alert {
+      color: var(--system-green);
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+
+    /* データテーブル風の業務表現パーツ */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    .data-table th, .data-table td {
+      border: 1px solid var(--border-heavy);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .data-table th {
+      background-color: rgba(255, 255, 255, 0.03);
+      color: var(--text-dim);
+    }
+
+    /* --- フッター（コマンド選択） --- */
+    .window-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-heavy);
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .action-btn {
+      font-family: inherit;
+      padding: 6px 20px;
+      font-size: 12px;
+      font-weight: bold;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 0px;
+    }
+    /* 確定コマンド */
+    .btn-exec {
+      border: 1px solid var(--system-green);
+      color: var(--system-green);
+    }
+    .btn-exec:hover {
+      background-color: rgba(0, 255, 102, 0.1);
+    }
+    /* 中止コマンド */
+    .btn-halt {
+      border: 1px solid var(--text-dim);
+      color: var(--text-dim);
+    }
+    .btn-halt:hover {
+      border-color: var(--text-white);
+      color: var(--text-white);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- トリガー -->
+  <button class="launch-btn" id="openBtn">INITIALIZE_MODAL_SYSTEM</button>
+
+  <!-- モーダルウィンドウ本体 -->
+  <dialog class="terminal-window" id="terminalModal">
+    
+    <!-- タイトルバーエリア -->
+    <div class="titlebar">
+      <h2 class="title-text">Console://root/terminal_window_v1.0</h2>
+      <div class="window-controls">
+        <!-- 最小化 (ダミー) -->
+        <button class="win-btn" aria-label="最小化" tabindex="-1">
+          <svg width="10" height="1" viewBox="0 0 10 1" fill="none" xmlns="http://w3.org">
+            <line stroke="currentColor" stroke-width="1.2" y1="0.5" x2="10" y2="0.5"/>
+          </svg>
+        </button>
+        <!-- 最大化 (ダミー) -->
+        <button class="win-btn" aria-label="最大化" tabindex="-1">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://w3.org">
+            <rect x="0.6" y="0.6" width="8.8" height="8.8" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+        </button>
+        <!-- 閉じる (実稼働) -->
+        <button class="win-btn close-trigger" id="closeBarBtn" aria-label="閉じる">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://w3.org">
+            <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- コンソールボディ -->
+    <div class="window-body">
+      <div class="status-alert">&gt; SYSTEM STATUS: READY_TO_TRANSMIT</div>
+      <p>完全な黒（#000000）をベースとした設計です。フォントには等幅のCourier系を配置し、すべての角の丸みを排除して直角で構成しています。</p>
+      
+      <!-- 業務っぽいデータリストのサンプル -->
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>PARAM_ID</th>
+            <th>VALUE</th>
+            <th>LOG_NODE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MODE_SET</td>
+            <td>CORE_DARK</td>
+            <td>0x88AF2</td>
+          </tr>
+          <tr>
+            <td>UI_LAYOUT</td>
+            <td>STRICT_CUI</td>
+            <td>0x88AF5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- フッターボタン -->
+    <div class="window-footer">
+      <button class="action-btn btn-halt" id="cancelBtn">HALT</button>
+      <button class="action-btn btn-exec" id="execBtn">COMMIT</button>
+    </div>
+
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('terminalModal');
+    const openBtn = document.getElementById('openBtn');
+    const closeBarBtn = document.getElementById('closeBarBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const execBtn = document.getElementById('execBtn');
+
+    openBtn.addEventListener('click', () => modal.showModal());
+
+    const closeModal = () => modal.close();
+    closeBarBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    execBtn.addEventListener('click', () => {
+      alert('TRANSMISSION COMPLETE.');
+      closeModal();
+    });
+
+    // 暗い背景をクリックしたら閉じる
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  </script>
+</body>
+</html>
