@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Tab Style Modal</title>
+  <style>
+    /* ==========================================================================
+       Windows風テーマのスタイル定義
+       ========================================================================== */
+    :root {
+      --win-bg: #f0f0f0;
+      --win-border-light: #ffffff;
+      --win-border-dark: #808080;
+      --win-border-shadow: #404040;
+      --win-title-blue: linear-gradient(90deg, #000080, #1080d0);
+      --win-text: #000000;
+    }
+
+    body {
+      font-family: 'MS Sans Serif', Tahoma, sans-serif;
+      background-color: #3b6ea5; /* クラシックなデスクトップ背景色 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* トリガーボタン */
+    .open-btn {
+      padding: 6px 12px;
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-border-light) var(--win-border-shadow) var(--win-border-shadow) var(--win-border-light);
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .open-btn:active {
+      border-color: var(--win-border-shadow) var(--win-border-light) var(--win-border-light) var(--win-border-shadow);
+    }
+
+    /* モーダル外枠 (<dialog>) */
+    dialog.win-modal {
+      width: 450px;
+      background: var(--win-bg);
+      padding: 3px;
+      border: 2px solid;
+      border-color: var(--win-border-light) var(--win-border-shadow) var(--win-border-shadow) var(--win-border-light);
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    }
+    dialog.win-modal::backdrop {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    /* タイトルバー */
+    .win-titlebar {
+      background: var(--win-title-blue);
+      color: #ffffff;
+      padding: 4px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .win-close-x {
+      background: var(--win-bg);
+      color: var(--win-text);
+      border: 1px solid;
+      border-color: var(--win-border-light) var(--win-border-shadow) var(--win-border-shadow) var(--win-border-light);
+      padding: 0px 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* タブコンテナ */
+    .win-tabs-container {
+      margin-top: 10px;
+      padding: 5px;
+    }
+
+    /* タブの並び */
+    .win-tabs {
+      display: flex;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 -2px 0; /* 下のコンテンツ枠と重ねる */
+      position: relative;
+      z-index: 2;
+    }
+    .win-tab {
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-border-light) var(--win-border-shadow) transparent var(--win-border-light);
+      padding: 6px 12px;
+      margin-right: 2px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    /* アクティブなタブ */
+    .win-tab.active {
+      border-bottom: 2px solid var(--win-bg);
+      padding-bottom: 8px; /* 少しはみ出させて前面感を出す */
+      margin-top: -2px;
+      font-weight: bold;
+    }
+
+    /* タブコンテンツの表示エリア */
+    .win-tab-content-box {
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-border-light) var(--win-border-shadow) var(--win-border-shadow) var(--win-border-light);
+      padding: 15px;
+      min-height: 15px;
+      z-index: 1;
+      position: relative;
+      font-size: 13px;
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* 下部アクションボタンエリア */
+    .win-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 0 5px 5px 0;
+    }
+    .win-btn {
+      min-width: 75px;
+      padding: 4px;
+      background: var(--win-bg);
+      border: 2px solid;
+      border-color: var(--win-border-light) var(--win-border-shadow) var(--win-border-shadow) var(--win-border-light);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .win-btn:active {
+      border-color: var(--win-border-shadow) var(--win-border-light) var(--win-border-light) var(--win-border-shadow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- モーダルを開くトリガー -->
+  <button class="open-btn" id="openModal">プロパティを開く(O)...</button>
+
+  <!-- Windows風モーダル本体 -->
+  <dialog id="winModal" class="win-modal">
+    <!-- タイトルバー -->
+    <div class="win-titlebar">
+      <span>システムのプロパティ</span>
+      <button class="win-close-x" id="closeX">×</button>
+    </div>
+
+    <!-- タブ構造 -->
+    <div class="win-tabs-container">
+      <ul class="win-tabs">
+        <li class="win-tab active" data-tab="tab1">全般</li>
+        <li class="win-tab" data-tab="tab2">詳細設定</li>
+        <li class="win-tab" data-tab="tab3">バージョン</li>
+      </ul>
+
+      <!-- コンテンツエリア -->
+      <div class="win-tab-content-box">
+        <div id="tab1" class="tab-panel active">
+          <p><strong>ファイル名:</strong> sample_document.txt</p>
+          <p><strong>ファイルの種類:</strong> テキスト ドキュメント</p>
+          <p><strong>サイズ:</strong> 12.4 KB (12,742 バイト)</p>
+        </div>
+        <div id="tab2" class="tab-panel">
+          <p>パフォーマンス、ユーザー プロファイル、および起動と回復の設定には、管理者権限が必要です。</p>
+          <button class="win-btn">設定(S)...</button>
+        </div>
+        <div id="tab3" class="tab-panel">
+          <p>Windows Web 拡張エディション</p>
+          <p>Version 2026 (OS Build 19045.2026)</p>
+          <p>© 2026 AI Generation. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下部ボタン -->
+    <div class="win-actions">
+      <button class="win-btn" id="closeOk">OK</button>
+      <button class="win-btn" id="closeCancel">キャンセル</button>
+    </div>
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('winModal');
+    const openBtn = document.getElementById('openModal');
+    const closeX = document.getElementById('closeX');
+    const closeOk = document.getElementById('closeOk');
+    const closeCancel = document.getElementById('closeCancel');
+    const tabs = document.querySelectorAll('.win-tab');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    // モーダルの開閉イベント
+    openBtn.addEventListener('click', () => modal.showModal());
+    [closeX, closeOk, closeCancel].forEach(btn => {
+      btn.addEventListener('click', () => modal.close());
+    });
+
+    // 背景（外側）クリックで閉じる処理
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close();
+    });
+
+    // タブ切り替えロジック
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // 全アクティブ状態の解除
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        // 選択されたタブと対応パネルをアクティブ化
+        tab.classList.add('active');
+        const targetPanel = document.getElementById(tab.dataset.tab);
+        targetPanel.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
