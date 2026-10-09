@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第四境界スタイル - 業務端末風モーダル</title>
+  <style>
+    :root {
+      --bg-modal: #0d0d0d;        /* ウィンドウ内の漆黒 */
+      --bg-titlebar: #161616;     /* タイトルバーの暗灰色 */
+      --text-white: #ffffff;      /* 基準の白文字 */
+      --border-color: #262626;    /* サイバー感のある精密な境界線 */
+      --win-hover: #2a2a2a;
+      --win-close-hover: #aa0000;
+    }
+
+    body {
+      font-family: 'Courier New', Courier, monospace, 'Noto Sans JP';
+      background-color: #030305;  /* 画像のようなディープな闇背景 */
+      color: var(--text-white);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      letter-spacing: 0.05em;
+    }
+
+    /* システム起動ボタン */
+    .launch-btn {
+      font-family: inherit;
+      background: transparent;
+      color: var(--text-white);
+      border: 1px solid var(--border-color);
+      padding: 12px 28px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .launch-btn:hover {
+      background-color: var(--text-white);
+      color: #000;
+    }
+
+    /* --- 第四境界風 ウィンドウ本体 --- */
+    .cyber-window {
+      border: 1px solid var(--border-color);
+      border-radius: 0px;
+      padding: 0;
+      width: 90%;
+      max-width: 540px;
+      background-color: var(--bg-modal);
+      color: var(--text-white);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 255, 255, 0.02);
+      overflow: hidden;
+      position: relative;
+
+      /* 画像のような「うっすら浮かぶ基盤・回路模様」を再現する疑似要素 */
+      background-image: 
+        radial-gradient(var(--border-color) 1px, transparent 0),
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 20px 20px, 40px 40px, 40px 40px;
+      background-position: 0 0;
+
+      opacity: 0;
+      transform: scale(0.97);
+      transition: opacity 0.15s ease-out, transform 0.15s ease-out, display 0.15s ease-out allow-discrete;
+    }
+
+    .cyber-window[open] {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .cyber-window::backdrop {
+      background-color: rgba(5, 5, 10, 0.85); /* ほんのり青みを含んだ深い闇 */
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      transition: opacity 0.15s ease-out, display 0.15s ease-out allow-discrete;
+    }
+    .cyber-window[open]::backdrop {
+      opacity: 1;
+    }
+
+    /* --- タイトルバー --- */
+    .titlebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--bg-titlebar);
+      border-bottom: 1px solid var(--border-color);
+      padding: 6px 12px;
+      user-select: none;
+    }
+
+    .title-text {
+      margin: 0;
+      font-size: 11px;
+      font-weight: normal;
+      color: #aaa;
+    }
+
+    .window-controls {
+      display: flex;
+    }
+
+    .win-btn {
+      background: none;
+      border: none;
+      width: 32px;
+      height: 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: #888;
+    }
+    .win-btn:hover {
+      background-color: var(--win-hover);
+      color: var(--text-white);
+    }
+    .win-btn.close-trigger:hover {
+      background-color: var(--win-close-hover);
+      color: var(--text-white);
+    }
+
+    /* --- ウィンドウ内部 --- */
+    .window-body {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* 大きなシステムロゴ（画像のBPS風） */
+    .system-logo {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+
+    .system-sub-logo {
+      font-size: 10px;
+      color: #888;
+      border-top: 1px solid #444;
+      padding-top: 4px;
+      margin-bottom: 24px;
+      width: 100%;
+      max-width: 280px;
+      letter-spacing: 0.15em;
+    }
+
+    /* システムテキスト記述 */
+    .description {
+      font-size: 12px;
+      line-height: 1.8;
+      color: #888;
+      max-width: 420px;
+      margin-bottom: 32px;
+    }
+
+    /* --- 画像の最大特徴：近未来的斜めカットの「LOGIN」ボタン --- */
+    .cyber-login-btn {
+      font-family: inherit;
+      background-color: var(--text-white);
+      color: #000000;
+      border: none;
+      padding: 12px 0;
+      width: 100%;
+      max-width: 240px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.2em;
+      cursor: pointer;
+      position: relative;
+      
+      /* clip-pathで、右上の角と左下の角を実物通りに斜めカット */
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .cyber-login-btn:hover {
+      opacity: 0.9;
+    }
+    .cyber-login-btn:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 起動システム -->
+  <button class="launch-btn" id="openBtn">CONNECT_TO_SYSTEM</button>
+
+  <!-- 第四境界スタイル モーダル -->
+  <dialog class="cyber-window" id="cyberModal">
+    
+    <!-- タイトルバー -->
+    <div class="titlebar">
+      <h2 class="title-text">the Boundary Principle System</h2>
+      <div class="window-controls">
+        <button class="win-btn" aria-label="最小化" tabindex="-1">
+          <svg width="10" height="1" viewBox="0 0 10 1" fill="none" xmlns="http://w3.org"><line stroke="currentColor" stroke-width="1.2" y1="0.5" x2="10" y2="0.5"/></svg>
+        </button>
+        <button class="win-btn" aria-label="最大化" tabindex="-1">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://w3.org"><rect x="0.6" y="0.6" width="8.8" height="8.8" stroke="currentColor" stroke-width="1.2"/></svg>
+        </button>
+        <button class="win-btn close-trigger" id="closeBarBtn" aria-label="閉じる">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://w3.org"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- コンテンツボディ -->
+    <div class="window-body">
+      <!-- メインロゴエリア -->
+      <div class="system-logo">8PS</div>
+      <div class="system-sub-logo">BOUNDARY PRINCIPLE SYSTEM</div>
+      
+      <!-- テキスト -->
+      <p class="description">
+        "We, 'The Fourth Boundary,' are a collective of creators who weave stories in the ambiguous realm between reality and the virtual. The foundation of this is the Boundary Principle System."
+      </p>
+      
+      <!-- 特徴的な形状のログインボタン -->
+      <button class="cyber-login-btn" id="loginBtn">LOGIN</button>
+    </div>
+
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('cyberModal');
+    const openBtn = document.getElementById('openBtn');
+    const closeBarBtn = document.getElementById('closeBarBtn');
+    const loginBtn = document.getElementById('loginBtn');
+
+    openBtn.addEventListener('click', () => modal.showModal());
+
+    const closeModal = () => modal.close();
+    closeBarBtn.addEventListener('click', closeModal);
+
+    loginBtn.addEventListener('click', () => {
+      alert('ACCESS GRANTED.');
+      closeModal();
+    });
+
+    // 背景をクリックしたら閉じる設定
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  </script>
+</body>
+</html>
