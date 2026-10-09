@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows 11 Style Modal</title>
+  <style>
+    /* ==========================================================================
+       Windows 11 (Fluent Design System) 再現テーマ
+       ========================================================================== */
+    :root {
+      /* ライトモードベースの設定 */
+      --win11-bg: rgba(243, 243, 243, 0.85); /* Mica（マイカ）素材風の半透明感 */
+      --win11-content-bg: rgba(255, 255, 255, 0.7);
+      --win11-text: #1a1a1a;
+      --win11-text-secondary: #5d5d5d;
+      --win11-accent: #0067b8; /* セグメントやプライマリボタンのブルー */
+      --win11-accent-hover: #005a9e;
+      --win11-radius: 8px; /* Win11を象徴する角丸 */
+      --win11-border: rgba(0, 0, 0, 0.08);
+      --win11-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    body {
+      /* Windows 11のデフォルト壁紙（Bloom）をイメージしたグラデーション背景 */
+      background: linear-gradient(135deg, #c3d7f7 0%, #e0cbf5 50%, #eeddf2 100%);
+      font-family: "Segoe UI", "Segoe UI Variable", "Yu Gothic", "游ゴシック", sans-serif;
+      font-size: 14px;
+      color: var(--win11-text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      backdrop-filter: blur(20px);
+    }
+
+    /* 起動ボタン */
+    .trigger-btn {
+      padding: 6px 20px;
+      background-color: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3); /* 下部のみ影を濃くして立体感を出す仕様 */
+      color: var(--win11-text);
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: background-color 0.1s, border-color 0.1s;
+    }
+    .trigger-btn:hover {
+      background-color: #f5f5f5;
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    /* モーダル本体（Windows 11 ウインドウ） */
+    dialog.win11-dialog {
+      width: 520px;
+      background: var(--win11-bg);
+      padding: 0;
+      border: 1px solid var(--win11-border);
+      border-radius: var(--win11-radius);
+      box-shadow: var(--win11-shadow);
+      backdrop-filter: blur(30px); /* 背景を滑らかにぼかす（Mica/Acrylic効果） */
+      overflow: hidden;
+      /* なめらかな表示アニメーション */
+      transform: scale(0.95);
+      opacity: 0;
+      transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 0.2s ease;
+      display: block;
+      pointer-events: none;
+    }
+    
+    /* dialog要素が開いた時のスタイル調整（JavaScriptのshowModalと連動） */
+    dialog.win11-dialog[open] {
+      transform: scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    dialog.win11-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(2px);
+      transition: opacity 0.2s ease;
+    }
+
+    /* タイトルバー */
+    .title-bar {
+      height: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      user-select: none;
+    }
+    .title-text {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--win11-text-secondary);
+    }
+    .win11-btn-x {
+      width: 46px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--win11-text);
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.1s, color 0.1s;
+    }
+    /* Win11は閉じるボタンのホバーも角丸でマイルドに（赤くなるのは同じ） */
+    .win11-btn-x:hover {
+      background-color: #c42b1c;
+      color: #ffffff;
+    }
+
+    /* メインコンテンツ（設定画面風のナビゲーション構造） */
+    .dialog-body {
+      display: flex;
+      padding: 0 16px 16px 16px;
+      gap: 20px;
+    }
+
+    /* タブナビゲーション（Win11の「設定」アプリ風の縦型メニュー、または横型選択） */
+    /* 今回はモーダルで美しい、最新の「タブコントロール」デザインを採用 */
+    .tab-container {
+      width: 100%;
+    }
+    
+    .tab-navigation {
+      display: flex;
+      list-style: none;
+      padding: 4px;
+      margin: 0 0 16px 0;
+      background: rgba(0, 0, 0, 0.04); /* 背景付きのモダンなセグメントタブ */
+      border-radius: 6px;
+      gap: 4px;
+    }
+    .tab-link {
+      flex: 1;
+      text-align: center;
+      padding: 6px 12px;
+      cursor: pointer;
+      color: var(--win11-text-secondary);
+      font-size: 13px;
+      border-radius: 4px;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .tab-link:hover {
+      background-color: rgba(255, 255, 255, 0.5);
+      color: var(--win11-text);
+    }
+    /* アクティブなタブ：白く浮かび上がり、微細な影を持つ */
+    .tab-link.active {
+      background-color: #ffffff;
+      color: var(--win11-text);
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* コンテンツ表示エリア */
+    .tab-content-box {
+      background: var(--win11-content-bg);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-radius: 6px;
+      padding: 16px;
+      min-height: 180px;
+    }
+    .tab-panel {
+      display: none;
+      font-size: 14px;
+      line-height: 1.5;
+      animation: fadeIn 0.2s ease;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 下部ボタンエリア */
+    .action-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .action-btn {
+      padding: 6px 24px;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.1s;
+    }
+    /* セカンダリボタン（キャンセル） */
+    .action-btn.secondary {
+      background-color: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+      color: var(--win11-text);
+    }
+    .action-btn.secondary:hover {
+      background-color: rgba(245, 245, 245, 0.9);
+    }
+    /* プライマリボタン（OK） */
+    .action-btn.primary {
+      background-color: var(--win11-accent);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+      color: #ffffff;
+    }
+    .action-btn.primary:hover {
+      background-color: var(--win11-accent-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- モーダルを開くボタン -->
+  <button class="trigger-btn" id="openBtn">システム構成の確認</button>
+
+  <!-- Windows 11 風 モーダル -->
+  <dialog id="win11Modal" class="win11-dialog">
+    <!-- タイトルバー -->
+    <div class="title-bar">
+      <div class="title-text">バージョン情報</div>
+      <button class="win11-btn-x" id="closeX">✕</button>
+    </div>
+
+    <!-- コンテンツボディ -->
+    <div class="dialog-body">
+      <div class="tab-container">
+        <!-- セグメントコントロール型の洗練されたタブメニュー -->
+        <ul class="tab-navigation">
+          <li class="tab-link active" data-tab="page1">システム</li>
+          <li class="tab-link" data-tab="page2">ストレージ</li>
+          <li class="tab-link" data-tab="page3">コンポーネント</li>
+        </ul>
+
+        <!-- タブの各コンテンツ -->
+        <div class="tab-content-box">
+          <div id="page1" class="tab-panel active">
+            <p style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">デバイスの仕様</p>
+            <p style="margin: 6px 0;"><strong>プロセッサ:</strong> AI Core i9-15900K @ 5.40GHz</p>
+            <p style="margin: 6px 0;"><strong>実装 RAM:</strong> 64.0 GB (63.8 GB 使用可能)</p>
+            <p style="margin: 6px 0;"><strong>システムの種類:</strong> 64 ビット オペレーティング システム</p>
+          </div>
+
+          <div id="page2" class="tab-panel">
+            <p style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">ローカル ディスク (C:)</p>
+            <p style="color: var(--win11-text-secondary); margin: 0 0 6px 0;">412 GB 空き / 952 GB</p>
+            <!-- Win11風プログレスバー -->
+            <div style="background: rgba(0,0,0,0.1); height: 6px; border-radius: 3px; overflow:hidden;">
+              <div style="background: var(--win11-accent); width: 56%; height: 100%;"></div>
+            </div>
+          </div>
+
+          <div id="page3" class="tab-panel">
+            <p style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">Windows の仕様</p>
+            <p style="margin: 6px 0;"><strong>エディション:</strong> Windows 11 Pro</p>
+            <p style="margin: 6px 0;"><strong>バージョン:</strong> 24H2</p>
+            <p style="margin: 6px 0;"><strong>OS ビルド:</strong> 26100.1150</p>
+          </div>
+        </div>
+
+        <!-- 下部ボタン -->
+        <div class="action-footer">
+          <button class="action-btn primary" id="closeOk">OK</button>
+          <button class="action-btn secondary" id="closeCancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('win11Modal');
+    const openBtn = document.getElementById('openBtn');
+    const closeX = document.getElementById('closeX');
+    const closeOk = document.getElementById('closeOk');
+    const closeCancel = document.getElementById('closeCancel');
+    
+    const tabs = document.querySelectorAll('.tab-link');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    // 開閉処理（アニメーションのために少しクラス制御を挟む）
+    openBtn.addEventListener('click', () => {
+      modal.showModal();
+    });
+    
+    [closeX, closeOk, closeCancel].forEach(btn => {
+      btn.addEventListener('click', () => modal.close());
+    });
+
+    // 背景クリックで閉じる処理
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close();
+    });
+
+    // タブ切り替えロジック
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
