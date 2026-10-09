@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows 95 Style Properties</title>
+  <style>
+    /* ==========================================================================
+       Windows 95/98 クラシックテーマ設定
+       ========================================================================== */
+    :root {
+      --win95-bg: #c0c0c0;
+      --win95-light: #ffffff;
+      --win95-shadow: #808080;
+      --win95-dark-shadow: #000000;
+      --win95-blue: #000080;
+    }
+
+    body {
+      /* 95/98でおなじみのデスクトップカラー（青緑） */
+      background-color: #008080; 
+      font-family: 'MS Sans Serif', 'MS Ｐゴシック', Tahoma, sans-serif;
+      font-size: 12px;
+      color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      -webkit-font-smoothing: none; /* ドット感を出すためにアンチエイリアスを切る */
+    }
+
+    /* レトロな立体枠線（共通パーツ用） */
+    .outset-border {
+      border: 2px solid;
+      border-color: var(--win95-light) var(--win95-dark-shadow) var(--win95-dark-shadow) var(--win95-light);
+      box-shadow: inset 1px 1px 0px var(--win95-bg), inset -1px -1px 0px var(--win95-shadow);
+    }
+    .inset-border {
+      border: 2px solid;
+      border-color: var(--win95-shadow) var(--win95-light) var(--win95-light) var(--win95-shadow);
+      box-shadow: inset 1px 1px 0px var(--win95-dark-shadow), inset -1px -1px 0px var(--win95-bg);
+    }
+
+    /* トリガーボタン */
+    .trigger-btn {
+      padding: 4px 15px;
+      background: var(--win95-bg);
+      cursor: pointer;
+    }
+    .trigger-btn:active {
+      border-color: var(--win95-shadow) var(--win95-light) var(--win95-light) var(--win95-shadow);
+      box-shadow: inset 1px 1px 0px var(--win95-dark-shadow), inset -1px -1px 0px var(--win95-bg);
+      padding: 5px 14px 3px 16px; /* ボタンを押した時のテキストのズレを再現 */
+    }
+
+    /* モーダル本体 */
+    dialog.win95-dialog {
+      width: 400px;
+      background: var(--win95-bg);
+      padding: 3px;
+      border: 2px solid;
+      border-color: var(--win95-light) var(--win95-dark-shadow) var(--win95-dark-shadow) var(--win95-light);
+      box-shadow: 1px 1px 0px var(--win95-bg) inset, -1px -1px 0px var(--win95-shadow) inset;
+    }
+    dialog.win95-dialog::backdrop {
+      /* 95特有のドットパターンの背景シールドを再現 */
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://w3.org" width="4" height="4"><rect width="2" height="2" fill="none"/><rect x="2" width="2" height="2" fill="%23000"/><rect y="2" width="2" height="2" fill="%23000"/><rect x="2" y="2" width="2" height="2" fill="none"/></svg>');
+      opacity: 0.15;
+    }
+
+    /* タイトルバー */
+    .title-bar {
+      background: var(--win95-blue);
+      color: #ffffff;
+      padding: 3px 4px 3px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+    .title-bar-text {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .title-bar-btn {
+      width: 16px;
+      height: 14px;
+      background: var(--win95-bg);
+      border: 1px solid;
+      border-color: var(--win95-light) var(--win95-dark-shadow) var(--win95-dark-shadow) var(--win95-light);
+      font-size: 11px;
+      font-weight: bold;
+      color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      padding: 0 0 2px 0;
+    }
+    .title-bar-btn:active {
+      border-color: var(--win95-dark-shadow) var(--win95-light) var(--win95-light) var(--win95-dark-shadow);
+      padding: 1px 0 1px 1px;
+    }
+
+    /* タブレイアウト */
+    .tab-wrapper {
+      margin-top: 10px;
+    }
+    .tabs-menu {
+      display: flex;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 -2px 5px;
+      position: relative;
+      z-index: 2;
+    }
+    .tab-item {
+      background: var(--win95-bg);
+      border: 2px solid transparent;
+      border-color: var(--win95-light) var(--win95-shadow) transparent var(--win95-light);
+      padding: 4px 10px;
+      margin-right: 2px;
+      cursor: pointer;
+    }
+    .tab-item.active {
+      border-bottom: 2px solid var(--win95-bg);
+      padding-bottom: 6px;
+      margin-top: -2px;
+      position: relative;
+      z-index: 3;
+    }
+
+    /* タブのコンテンツが入る大きな四角形 */
+    .tab-content-area {
+      background: var(--win95-bg);
+      border: 2px solid;
+      border-color: var(--win95-light) var(--win95-dark-shadow) var(--win95-dark-shadow) var(--win95-light);
+      box-shadow: inset 1px 1px 0px var(--win95-bg), inset -1px -1px 0px var(--win95-shadow);
+      padding: 15px;
+      min-height: 180px;
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* フォームパーツ（Windows 95仕様のインセット入力枠） */
+    .win95-fieldset {
+      border: 2px solid;
+      border-color: var(--win95-shadow) var(--win95-light) var(--win95-light) var(--win95-shadow);
+      margin-top: 10px;
+      padding: 10px;
+    }
+    .win95-fieldset legend {
+      background-color: var(--win95-bg);
+      padding: 0 5px;
+    }
+
+    /* 下部ボタン配置 */
+    .action-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 画面上の起動ボタン -->
+  <button class="trigger-btn outset-border" id="btnOpen">マイ コンピュータ(M)...</button>
+
+  <!-- モーダルウインドウ -->
+  <dialog id="dlgWin95" class="win95-dialog">
+    <!-- タイトルバー -->
+    <div class="title-bar">
+      <div class="title-bar-text">
+        <span>💾 システムのプロパティ</span>
+      </div>
+      <button class="title-bar-btn" id="btnX">×</button>
+    </div>
+
+    <!-- タブコントロール -->
+    <div class="tab-wrapper">
+      <ul class="tabs-menu">
+        <li class="tab-item active" data-target="panelA">全般</li>
+        <li class="tab-item" data-target="panelB">デバイス マネージャ</li>
+        <li class="tab-item" data-target="panelC">パフォーマンス</li>
+      </ul>
+
+      <!-- タブコンテンツ -->
+      <div class="tab-content-area">
+        <div id="panelA" class="tab-panel active">
+          <p><strong>システム:</strong></p>
+          <p style="margin-left: 15px;">Microsoft Windows 95<br>4.00.950 B</p>
+          
+          <div class="win95-fieldset">
+            <legend>登録者</legend>
+            <p style="margin: 0;">User 1995</p>
+            <p style="margin: 5px 0 0 0;">AI Co-pilot Corp.</p>
+          </div>
+        </div>
+
+        <div id="panelB" class="tab-panel">
+          <p>種類別に表示(🔠)</p>
+          <div class="inset-border" style="background: #fff; height: 110px; padding: 5px; overflow-y: auto;">
+            💻 パソコン本体<br>
+            💾 フロッピーディスク ドライブ<br>
+            💿 CD-ROM ドライブ<br>
+            ⌨️ キーボード<br>
+            🖱️ マウス
+          </div>
+        </div>
+
+        <div id="panelC" class="tab-panel">
+          <p><strong>パフォーマンスの設定:</strong></p>
+          <p>メモリ (RAM): 16.0 MB RAM</p>
+          <p>システムリソース: 85% 自由</p>
+          <p>ファイルシステム: 32ビット</p>
+          <p>バーチャルメモリ: 32ビット</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下部の決定・キャンセルボタン -->
+    <div class="action-row">
+      <button class="trigger-btn outset-border" id="btnOk" style="min-width: 75px;">OK</button>
+      <button class="trigger-btn outset-border" id="btnCancel" style="min-width: 75px;">キャンセル</button>
+    </div>
+  </dialog>
+
+  <script>
+    const dlg = document.getElementById('dlgWin95');
+    const openBtn = document.getElementById('btnOpen');
+    const xBtn = document.getElementById('btnX');
+    const okBtn = document.getElementById('btnOk');
+    const cancelBtn = document.getElementById('btnCancel');
+    const tabItems = document.querySelectorAll('.tab-item');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    // 開閉処理
+    openBtn.addEventListener('click', () => dlg.showModal());
+    [xBtn, okBtn, cancelBtn].forEach(b => b.addEventListener('click', () => dlg.close()));
+
+    // タブ切り替えロジック
+    tabItems.forEach(item => {
+      item.addEventListener('click', () => {
+        tabItems.forEach(t => t.classList.remove('active'));
+        tabPanels.forEach(p => p.classList.remove('active'));
+
+        item.classList.add('active');
+        document.getElementById(item.dataset.target).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
