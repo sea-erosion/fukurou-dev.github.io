@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Early Windows 10 Style Modal</title>
+  <style>
+    /* ==========================================================================
+       最初期 Windows 10（Build 10240 / Ver.1507）再現テーマ
+       ========================================================================== */
+    :root {
+      --win10-bg: #ffffff;
+      --win10-text: #000000;
+      --win10-gray-text: #666666;
+      /* 最初期の特徴：境界線は極細の黒/濃いグレー、そして非常に濃い影 */
+      --win10-border: #707070;
+      --win10-accent: #0078d7; /* 標準のアクセントカラー（ブルー） */
+      --win10-btn-bg: #e1e1e1;
+      --win10-btn-border: #cccccc;
+    }
+
+    body {
+      /* 最初期のデフォルト壁紙をイメージしたダークブルー */
+      background-color: #0b1a2a; 
+      font-family: "Segoe UI", "Yu Gothic", "游ゴシック", sans-serif;
+      font-size: 12px;
+      color: var(--win10-text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* 起動ボタン */
+    .trigger-btn {
+      padding: 5px 16px;
+      background-color: var(--win10-btn-bg);
+      border: 1px solid var(--win10-btn-border);
+      color: var(--win10-text);
+      cursor: pointer;
+    }
+    .trigger-btn:hover {
+      background-color: #e5f1fb;
+      border-color: #0078d7;
+    }
+
+    /* モーダル本体（最初期ウインドウ仕様） */
+    dialog.win10-dialog {
+      width: 480px;
+      background: var(--win10-bg);
+      padding: 0;
+      /* 特徴1：角丸は一切なし（完全な四角） */
+      border: 1px solid var(--win10-border); 
+      /* 特徴2：最初期のWindows 10はドロップシャドウが非常に濃く、ぼかしが少ない */
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6); 
+    }
+    dialog.win10-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    /* タイトルバー（最初期は白背景に黒文字が基本） */
+    .title-bar {
+      height: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-left: 10px;
+      background-color: #ffffff;
+      user-select: none;
+    }
+    .title-text {
+      font-size: 12px;
+      color: #000000;
+    }
+    /* 右上のシステムボタンエリア */
+    .title-controls {
+      display: flex;
+      height: 100%;
+    }
+    .win10-btn-x {
+      width: 45px;
+      height: 30px;
+      background: transparent;
+      border: none;
+      color: #000000;
+      font-size: 16px;
+      font-weight: 300;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    /* 最初期Win10特有の、ホバー時にパッと鮮やかな赤に変わるエフェクト */
+    .win10-btn-x:hover {
+      background-color: #e81123;
+      color: #ffffff;
+    }
+
+    /* メインコンテンツエリア */
+    .dialog-body {
+      padding: 10px 20px 20px 20px;
+    }
+
+    /* タブレイアウト（設定画面やプロパティのソリッドなフラットデザイン） */
+    .tab-navigation {
+      display: flex;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 15px 0;
+      border-bottom: 1px solid #dfdfdf;
+    }
+    .tab-link {
+      padding: 8px 16px;
+      cursor: pointer;
+      color: var(--win10-gray-text);
+      font-size: 13px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab-link:hover {
+      color: var(--win10-text);
+    }
+    /* アクティブタブ：アクセントカラーの一本線のみで表現 */
+    .tab-link.active {
+      color: var(--win10-accent);
+      border-bottom: 2px solid var(--win10-accent);
+      font-weight: 600;
+    }
+
+    /* タブコンテンツ */
+    .tab-panel {
+      display: none;
+      min-height: 160px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* 内部のフラットなボタン */
+    .win10-inline-btn {
+      margin-top: 10px;
+      padding: 5px 24px;
+      background-color: #cccccc; /* 当時の少し濃いグレーのボタン */
+      border: 1px solid #7a7a7a;
+      color: #000000;
+      cursor: pointer;
+    }
+    .win10-inline-btn:hover {
+      background-color: #7a7a7a;
+      color: #ffffff;
+    }
+
+    /* 下部アクションボタンエリア */
+    .action-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .action-footer .action-btn {
+      min-width: 88px;
+      padding: 6px 0;
+      font-size: 13px;
+      background-color: #e1e1e1;
+      border: 1px solid #adadad;
+      cursor: pointer;
+    }
+    .action-footer .action-btn:hover {
+      background-color: #e5f1fb;
+      border-color: #0078d7;
+    }
+    /* 主ボタン（フォーカス状態の青枠線） */
+    .action-footer .action-btn.primary {
+      border: 2px solid var(--win10-accent);
+      padding: 5px 0; /* ボーダーが厚くなった分引く */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- モーダルを開くボタン -->
+  <button class="trigger-btn" id="openBtn">詳細設定の表示(P)</button>
+
+  <!-- 最初期 Windows 10 風 モーダル -->
+  <dialog id="win10Modal" class="win10-dialog">
+    <!-- タイトルバー -->
+    <div class="title-bar">
+      <div class="title-text">詳細設定</div>
+      <div class="title-controls">
+        <button class="win10-btn-x" id="closeX">✕</button>
+      </div>
+    </div>
+
+    <!-- コンテンツボディ -->
+    <div class="dialog-body">
+      <!-- フラットなタブメニュー -->
+      <ul class="tab-navigation">
+        <li class="tab-link active" data-tab="page1">ユーザー情報</li>
+        <li class="tab-link" data-tab="page2">同期設定</li>
+        <li class="tab-link" data-tab="page3">バージョン情報</li>
+      </ul>
+
+      <!-- タブの各コンテンツ -->
+      <div class="tab-content">
+        <div id="page1" class="tab-panel active">
+          <p style="font-size: 16px; margin: 0 0 10px 0;">Windows ユーザー</p>
+          <p style="color: var(--win10-gray-text); margin: 0;">ローカル アカウント / 管理者</p>
+          <button class="win10-inline-btn">Microsoft アカウントに切り替える</button>
+        </div>
+
+        <div id="page2" class="tab-panel">
+          <p>設定の同期は現在有効です。テーマ、パスワード、言語の選択などの設定がデバイス間で同期されます。</p>
+          <label style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
+            <input type="checkbox" checked style="width: 16px; height: 16px;"> 同期設定をオンにする
+          </label>
+        </div>
+
+        <div id="page3" class="tab-panel">
+          <p><strong>エディション:</strong> Windows 10 Pro</p>
+          <p><strong>バージョン:</strong> 1507</p>
+          <p><strong>OS ビルド:</strong> 10240.16384</p>
+          <p style="color: var(--win10-gray-text); margin-top: 15px;">プロダクト ID: 00330-80000-00000-AA631</p>
+        </div>
+      </div>
+
+      <!-- 下部ボタン -->
+      <div class="action-footer">
+        <button class="action-btn primary" id="closeOk">OK</button>
+        <button class="action-btn" id="closeCancel">キャンセル</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('win10Modal');
+    const openBtn = document.getElementById('openBtn');
+    const closeX = document.getElementById('closeX');
+    const closeOk = document.getElementById('closeOk');
+    const closeCancel = document.getElementById('closeCancel');
+    
+    const tabs = document.querySelectorAll('.tab-link');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    // 開閉処理
+    openBtn.addEventListener('click', () => modal.showModal());
+    [closeX, closeOk, closeCancel].forEach(btn => {
+      btn.addEventListener('click', () => modal.close());
+    });
+
+    // 背景クリックで閉じる処理
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close();
+    });
+
+    // フラットタブ切り替えロジック
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
